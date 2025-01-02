@@ -1,10 +1,9 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const TELEGRAM_BOT_TOKEN = '7446147421:AAEYdJVUpKmk7VM04DIl3Rm9iRo8BpDli5g';
 const TELEGRAM_CHAT_ID = '391609613';
-const TARGET_PRICE = 800;
-const PRICE_CHANGE_THRESHOLD = 50;
 
 async function sendTelegramAlert(message) {
   try {
@@ -31,7 +30,7 @@ export default function PriceMonitor() {
   const [lastCheck, setLastCheck] = useState(null);
   const [currentPrice, setCurrentPrice] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [rentalDetails, setRentalDetails] = useState({
+  const [rentalDetails] = useState({
     pickupDate: "2025-01-07T12:30",
     returnDate: "2025-02-03T12:30",
     days: 27,
@@ -89,6 +88,13 @@ export default function PriceMonitor() {
       setIsLoading(false);
     }
   };
+
+  // Add the useEffect hook back
+  useEffect(() => {
+    checkPrice(); // Initial check
+    const interval = setInterval(checkPrice, 6 * 60 * 60 * 1000); // Check every 6 hours
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
