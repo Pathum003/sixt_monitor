@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function PriceMonitor() {
   const [locations, setLocations] = useState([]);
