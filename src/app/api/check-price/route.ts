@@ -20,7 +20,7 @@ export async function POST() {
         "trip_spec": {
           "pickup_datetime": {"value": "2025-01-07T12:30"},
           "pickup_location_selection_id": "cd39902b-c6cb-4bf8-bece-1103f0ab192d",
-          "return_location_selection_id": "cd39902b-c6cb-4bf8-bece-1103f0ab192d",
+          "return_location_selection_id": "cd39902b-c6cb-4f8-bece-1103f0ab192d",
           "return_datetime": {"value": "2025-02-03T12:30"},
           "vehicle_type": 10
         }
@@ -29,8 +29,11 @@ export async function POST() {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch (error: any) { // Type assertion here
     console.error('Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || 'An error occurred' }, 
+      { status: 500 }
+    );
   }
 }

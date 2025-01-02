@@ -37,7 +37,7 @@ export default function PriceMonitor() {
     location: {
       name: "Pasadena Downtown",
       address: "350 W Colorado Blvd, Pasadena, 91105-1808, US",
-      id: "cd39902b-c6cb-4bf8-bece-1103f0ab192d"
+      id: "cd39902b-c6cb-4f8-bece-1103f0ab192d"
     }
   });
 
@@ -52,7 +52,7 @@ export default function PriceMonitor() {
     });
   };
 
-const checkPrice = async () => {
+  const checkPrice = async () => {
     setIsLoading(true);
     try {
       // Call our own API endpoint instead of Sixt directly
