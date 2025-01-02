@@ -52,10 +52,9 @@ export default function PriceMonitor() {
     });
   };
 
-  const checkPrice = async () => {
+const checkPrice = async () => {
     setIsLoading(true);
     try {
-      // Make actual API call to Sixt
       const response = await fetch('https://grpc-prod.orange.sixt.com/com.sixt.service.rent_booking.api.BookingService/GetOfferRecommendationsV2', {
         method: 'POST',
         headers: {
@@ -64,6 +63,9 @@ export default function PriceMonitor() {
           'x-client-type': 'web',
           'Origin': 'https://www.sixt.com',
           'Referer': 'https://www.sixt.com/',
+          'x-correlation-id': '850f662d-db29-4931-b5d5-d081a17feede',
+          'x-client-id': 'web-browser-2501015753736131000537365900144030',
+          'x-sx-o-client-id': '61cf6566-5666-4a77-83a8-7c6147a0c5d2:oeu1735771264797r0.5707519380626047'
         },
         body: JSON.stringify({
           "offer_matrix_id": "cc323592-0db0-4151-b5a4-1930e03b0532",
@@ -78,8 +80,10 @@ export default function PriceMonitor() {
         })
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
-      console.log('Sixt API Response:', data); // For debugging
+      console.log('API Response:', data);
+      // ... rest of the code
 
       // Find BMW 5 series in the offers (XCAR category)
       const bmw5Series = data.offers.find(offer => offer.car_info.title.includes("BMW 5"));
