@@ -55,35 +55,13 @@ export default function PriceMonitor() {
 const checkPrice = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://grpc-prod.orange.sixt.com/com.sixt.service.rent_booking.api.BookingService/GetOfferRecommendationsV2', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'sx-platform': 'web-next',
-          'x-client-type': 'web',
-          'Origin': 'https://www.sixt.com',
-          'Referer': 'https://www.sixt.com/',
-          'x-correlation-id': '850f662d-db29-4931-b5d5-d081a17feede',
-          'x-client-id': 'web-browser-2501015753736131000537365900144030',
-          'x-sx-o-client-id': '61cf6566-5666-4a77-83a8-7c6147a0c5d2:oeu1735771264797r0.5707519380626047'
-        },
-        body: JSON.stringify({
-          "offer_matrix_id": "cc323592-0db0-4151-b5a4-1930e03b0532",
-          "currency": "USD",
-          "trip_spec": {
-            "pickup_datetime": {"value": rentalDetails.pickupDate},
-            "pickup_location_selection_id": rentalDetails.location.id,
-            "return_location_selection_id": rentalDetails.location.id,
-            "return_datetime": {"value": rentalDetails.returnDate},
-            "vehicle_type": 10
-          }
-        })
+      // Call our own API endpoint instead of Sixt directly
+      const response = await fetch('/api/check-price', {
+        method: 'POST'
       });
 
-      console.log('Response status:', response.status);
       const data = await response.json();
       console.log('API Response:', data);
-      // ... rest of the code
 
       // Find BMW 5 series in the offers (XCAR category)
       const bmw5Series = data.offers.find(offer => offer.car_info.title.includes("BMW 5"));
