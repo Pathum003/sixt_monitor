@@ -7,7 +7,7 @@ export default function PriceMonitor() {
   const [error, setError] = useState(null);
   const [lastCheck, setLastCheck] = useState(null);
 
-  const checkLocations = async () => {
+  const checkPrices = async () => {
     setIsLoading(true);
     setError(null);
     
@@ -17,13 +17,23 @@ export default function PriceMonitor() {
       });
 
       const data = await response.json();
-      console.log('Raw API Response:', data);  // For debugging
       
       if (data.error) {
         throw new Error(data.error);
       }
 
-      setLocations(data.branches || []);
+      // Sort locations by price
+      const sortedLocations = (data.branches || [])
+        .filter(branch => branch.cheapest_offer_price)
+        .map(branch => ({
+          name: branch.title,
+          address: branch.description,
+          price: branch.cheapest_offer_price.gross.value,
+          distance: branch.distance?.distance || 'N/A'
+        }))
+        .sort((a, b) => a.price - b.price);
+
+      setLocations(sortedLocations);
       setLastCheck(new Date());
       
     } catch (err) {
@@ -37,48 +47,66 @@ export default function PriceMonitor() {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">Sixt Location Finder</h2>
+        <h2 className="text-2xl font-bold mb-4">Sixt Nearby Location Prices</h2>
         
-        {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-4">
-            Error: {error}
-          </div>
-        )}
+        <div className="grid gap-4 mb-6">
+          {locations.length > 0 && (
+            <div className="bg-green-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-lg mb-2">Best Price</h3>
+              <div className="text-2xl font-bold mb-1">
+                ${locations[0].price.toFixed(2)}
+              </div>
+              <div className="text-sm text-gray-600">
+                at {locations[0].name}
+              </div>
+              <div className="text-xs text-gray-500">
+                {locations[0].address}
+              </div>
+              <div className="text-xs text-gray-500">
+                Distance: {locations[0].distance} miles
+              </div>
+            </div>
+          )}
 
-        <div className="mb-4">
-          <button 
-            className={`px-4 py-2 rounded text-white w-full
-              ${isLoading 
-                ? 'bg-blue-300 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'
-              }`}
-            onClick={checkLocations}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Searching...' : 'Find Nearby Locations'}
-          </button>
+          {error && (
+            <div className="bg-red-50 p-4 rounded-lg text-red-600">
+              {error}
+            </div>
+          )}
+
+          <div className="text-sm text-gray-500">
+            Last checked: {lastCheck?.toLocaleString() || 'Never'}
+          </div>
         </div>
 
-        {lastCheck && (
-          <div className="text-sm text-gray-500 mb-4">
-            Last checked: {lastCheck.toLocaleString()}
-          </div>
-        )}
-
         {locations.length > 0 && (
-          <div className="space-y-4">
-            {locations.map((location, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="font-semibold">{location.title}</div>
-                <div className="text-sm text-gray-600">{location.formatted_address}</div>
-                <div className="text-sm mt-2">
-                  Distance: {location.distance?.distance} {location.distance?.distance_unit}
+          <div className="mt-6">
+            <h3 className="font-semibold text-lg mb-2">All Locations</h3>
+            <div className="grid gap-3">
+              {locations.map((loc, index) => (
+                <div key={index} className="border rounded p-3">
+                  <div className="font-medium">${loc.price.toFixed(2)}</div>
+                  <div className="text-sm">{loc.name}</div>
+                  <div className="text-xs text-gray-600">{loc.address}</div>
+                  <div className="text-xs text-gray-500">Distance: {loc.distance} miles</div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
       </div>
+
+      <button 
+        className={`px-4 py-2 rounded text-white w-full
+          ${isLoading 
+            ? 'bg-blue-300 cursor-not-allowed' 
+            : 'bg-blue-600 hover:bg-blue-700'
+          }`}
+        onClick={checkPrices}
+        disabled={isLoading}
+      >
+        {isLoading ? 'Checking...' : 'Check Prices Now'}
+      </button>
     </div>
   );
 }
