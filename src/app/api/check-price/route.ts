@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST() {
   try {
-    const response = await fetch('https://grpc-prod.orange.sixt.com/com.sixt.service.nearbyoffers.api.NearbyOffersService/GetNearbyOffers', {
+    const response = await fetch('https://grpc-prod.orange.sixt.com/com.sixt.service.rent_booking.api.BookingService/GetNearbyBranchesV2', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -12,12 +12,10 @@ export async function POST() {
         'Referer': 'https://www.sixt.com/'
       },
       body: JSON.stringify({
-        "offer_matrix_id": "99277d94-1a88-4887-83d8-b6f6fbdb5927",
-        "pickup_location_id": "6c44c18c-3860-41bc-a661-931855a3afcf",
-        "return_location_id": "6c44c18c-3860-41bc-a661-931855a3afcf",
-        "pickup_datetime": {"value": "2025-01-09T12:30"},
-        "return_datetime": {"value": "2025-02-05T12:30"},
-        "vehicle_type": "car"
+        "pu_location": "6c44c18c-3860-41bc-a661-931855a3afcf",
+        "do_location": "6c44c18c-3860-41bc-a661-931855a3afcf",
+        "pu_time": "2025-01-09T12:30",
+        "do_time": "2025-02-05T12:30"
       })
     });
 
