@@ -26,10 +26,10 @@ export async function POST() {
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error:', error);
     return NextResponse.json(
-      { error: error?.message || 'An error occurred' }, 
+      { error: error instanceof Error ? error.message : 'An unknown error occurred' }, 
       { status: 500 }
     );
   }
