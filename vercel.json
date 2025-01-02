@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "app/api/check-price/route.ts": {
+      "memory": 3008,
+      "maxDuration": 300
+    }
+  },
+  "build": {
+    "env": {
+      "CHROME_AWS_LAMBDA_CHROMIUM_EXECUTABLE_PATH": "/opt/chromium/chrome"
+    }
+  }
+}
