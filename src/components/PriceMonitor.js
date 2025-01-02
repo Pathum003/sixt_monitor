@@ -1,4 +1,3 @@
-'use client';
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -32,13 +31,26 @@ export default function PriceMonitor() {
   const [lastCheck, setLastCheck] = useState(null);
   const [currentPrice, setCurrentPrice] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [rentalDetails, setRentalDetails] = useState({
+    pickupDate: "2025-01-07T12:30",
+    returnDate: "2025-02-03T12:30",
+    days: 27,
+    location: {
+      name: "Pasadena Downtown",
+      address: "350 W Colorado Blvd, Pasadena, 91105-1808, US",
+      id: "cd39902b-c6cb-4bf8-bece-1103f0ab192d"
+    }
+  });
 
-  const shouldNotify = (newPrice, oldPrice) => {
-    if (!oldPrice) return false;
-    return (
-      newPrice < TARGET_PRICE ||
-      Math.abs(newPrice - oldPrice) >= PRICE_CHANGE_THRESHOLD
-    );
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const checkPrice = async () => {
@@ -50,22 +62,24 @@ export default function PriceMonitor() {
       
       const now = new Date();
       
-      if (shouldNotify(newPrice, currentPrice)) {
-        const message = `🚨 BMW 5 Series Price Alert!\n\n` +
-          `Previous Price: $${currentPrice?.toFixed(2) || 'N/A'}\n` +
-          `New Price: $${newPrice.toFixed(2)}\n` +
-          `Change: ${currentPrice ? `$${(newPrice - currentPrice).toFixed(2)}` : 'N/A'}\n\n` +
-          `Checked at: ${now.toLocaleString()}`;
-        
-        await sendTelegramAlert(message);
-      }
+      const message = `🚨 BMW 5 Series Price Update\n\n` +
+        `Location: ${rentalDetails.location.name}\n` +
+        `Price: $${newPrice.toFixed(2)}\n` +
+        `Rental Period: ${rentalDetails.days} days\n` +
+        `Pickup: ${formatDate(rentalDetails.pickupDate)}\n` +
+        `Return: ${formatDate(rentalDetails.returnDate)}\n` +
+        `Price per day: $${(newPrice / rentalDetails.days).toFixed(2)}\n\n` +
+        `Checked at: ${now.toLocaleString()}`;
+      
+      await sendTelegramAlert(message);
       
       setLastCheck(now);
       setCurrentPrice(newPrice);
       
       setPriceHistory(prev => [...prev, {
         timestamp: now.toLocaleString(),
-        price: newPrice
+        price: newPrice,
+        pricePerDay: newPrice / rentalDetails.days
       }]);
       
     } catch (error) {
@@ -76,24 +90,43 @@ export default function PriceMonitor() {
     }
   };
 
-  useEffect(() => {
-    checkPrice();
-    const interval = setInterval(checkPrice, 6 * 60 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-4">BMW 5 Series Price Monitor</h2>
-        <div className="text-lg mb-2">
-          Current Price: ${currentPrice?.toFixed(2) || 'Loading...'}
-        </div>
-        <div className="text-sm text-gray-500">
-          Last checked: {lastCheck?.toLocaleString() || 'Never'}
-        </div>
-        <div className="text-sm text-gray-500">
-          Target Price: ${TARGET_PRICE} | Alert on change: ${PRICE_CHANGE_THRESHOLD}
+        
+        <div className="grid gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-lg mb-2">Rental Details</h3>
+            <div className="grid gap-2">
+              <div className="border-b pb-2">
+                <div className="font-medium">Location</div>
+                <div className="text-sm">{rentalDetails.location.name}</div>
+                <div className="text-xs text-gray-600">{rentalDetails.location.address}</div>
+              </div>
+              <div>
+                <div>Pickup: {formatDate(rentalDetails.pickupDate)}</div>
+                <div>Return: {formatDate(rentalDetails.returnDate)}</div>
+                <div>Duration: {rentalDetails.days} days</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h3 className="font-semibold text-lg mb-2">Current Price</h3>
+            <div className="text-2xl font-bold mb-1">
+              ${currentPrice?.toFixed(2) || 'Loading...'}
+            </div>
+            {currentPrice && (
+              <div className="text-sm text-gray-600">
+                ${(currentPrice / rentalDetails.days).toFixed(2)} per day
+              </div>
+            )}
+          </div>
+
+          <div className="text-sm text-gray-500">
+            Last checked: {lastCheck?.toLocaleString() || 'Never'}
+          </div>
         </div>
       </div>
       
@@ -108,19 +141,29 @@ export default function PriceMonitor() {
               height={80}
             />
             <YAxis domain={['auto', 'auto']} />
-            <Tooltip />
+            <Tooltip 
+              formatter={(value) => `$${value.toFixed(2)}`}
+            />
             <Line 
               type="monotone" 
               dataKey="price" 
               stroke="#2563eb"
               strokeWidth={2}
+              name="Total Price"
+            />
+            <Line 
+              type="monotone" 
+              dataKey="pricePerDay" 
+              stroke="#10b981"
+              strokeWidth={2}
+              name="Price per Day"
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       <button 
-        className={`px-4 py-2 rounded text-white 
+        className={`px-4 py-2 rounded text-white w-full
           ${isLoading 
             ? 'bg-blue-300 cursor-not-allowed' 
             : 'bg-blue-600 hover:bg-blue-700'
