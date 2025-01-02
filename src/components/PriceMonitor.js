@@ -34,7 +34,7 @@ export default function PriceMonitor() {
     });
   };
 
-  const checkPrice = async () => {
+const checkPrice = async () => {
     setIsLoading(true);
     setError(null);
     
@@ -44,6 +44,11 @@ export default function PriceMonitor() {
       });
 
       const data = await response.json();
+      console.log('Available cars:', data.offers?.map(offer => ({
+        title: offer.car_info.title,
+        price: offer.price_total.gross.value,
+        category: offer.offer_acriss_code
+      })));
       
       if (data.error) {
         throw new Error(data.error);
@@ -54,7 +59,9 @@ export default function PriceMonitor() {
       );
       
       if (!bmw5Series) {
-        throw new Error('BMW 5 Series not found in offers');
+        // Instead of throwing error, show available cars
+        const availableCars = data.offers?.map(offer => offer.car_info.title).join('\n');
+        throw new Error(`BMW 5 Series not found. Available cars:\n${availableCars}`);
       }
 
       const newPrice = bmw5Series.price_total.gross.value;

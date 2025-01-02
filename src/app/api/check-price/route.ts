@@ -25,6 +25,7 @@ export async function POST() {
     });
 
     const data = await response.json();
+    console.log('Full API Response:', JSON.stringify(data, null, 2));
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error:', error);
