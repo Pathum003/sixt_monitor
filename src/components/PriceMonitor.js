@@ -55,10 +55,39 @@ export default function PriceMonitor() {
   const checkPrice = async () => {
     setIsLoading(true);
     try {
-      const basePrice = 840.63;
-      const variation = Math.random() * 100 - 50;
-      const newPrice = basePrice + variation;
-      
+      // Make actual API call to Sixt
+      const response = await fetch('https://grpc-prod.orange.sixt.com/com.sixt.service.rent_booking.api.BookingService/GetOfferRecommendationsV2', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'sx-platform': 'web-next',
+          'x-client-type': 'web',
+          'Origin': 'https://www.sixt.com',
+          'Referer': 'https://www.sixt.com/',
+        },
+        body: JSON.stringify({
+          "offer_matrix_id": "cc323592-0db0-4151-b5a4-1930e03b0532",
+          "currency": "USD",
+          "trip_spec": {
+            "pickup_datetime": {"value": rentalDetails.pickupDate},
+            "pickup_location_selection_id": rentalDetails.location.id,
+            "return_location_selection_id": rentalDetails.location.id,
+            "return_datetime": {"value": rentalDetails.returnDate},
+            "vehicle_type": 10
+          }
+        })
+      });
+
+      const data = await response.json();
+      console.log('Sixt API Response:', data); // For debugging
+
+      // Find BMW 5 series in the offers (XCAR category)
+      const bmw5Series = data.offers.find(offer => offer.car_info.title.includes("BMW 5"));
+      if (!bmw5Series) {
+        throw new Error('BMW 5 Series not found in offers');
+      }
+
+      const newPrice = bmw5Series.price_total.gross.value;
       const now = new Date();
       
       const message = `🚨 BMW 5 Series Price Update\n\n` +
@@ -68,6 +97,8 @@ export default function PriceMonitor() {
         `Pickup: ${formatDate(rentalDetails.pickupDate)}\n` +
         `Return: ${formatDate(rentalDetails.returnDate)}\n` +
         `Price per day: $${(newPrice / rentalDetails.days).toFixed(2)}\n\n` +
+        `Availability: ${bmw5Series.offer_availability_status}\n` +
+        `Rate Code: ${bmw5Series.rate_code}\n\n` +
         `Checked at: ${now.toLocaleString()}`;
       
       await sendTelegramAlert(message);
@@ -89,7 +120,6 @@ export default function PriceMonitor() {
     }
   };
 
-  // Add the useEffect hook back
   useEffect(() => {
     checkPrice(); // Initial check
     const interval = setInterval(checkPrice, 6 * 60 * 60 * 1000); // Check every 6 hours
