@@ -1,4 +1,13 @@
 import Image from "next/image";
+import PriceMonitor from '../components/PriceMonitor';
+
+export default function Home() {
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-between p-24">
+      <PriceMonitor />
+    </main>
+  );
+}
 
 export default function Home() {
   return (
